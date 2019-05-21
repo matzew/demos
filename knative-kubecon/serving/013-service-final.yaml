@@ -4,9 +4,28 @@ metadata:
   name: dumpy
   namespace: myproject
 spec:
-  release:
-    revisions: ["dumpy-00002"]
-    rolloutPercent: 0
+  template:
+    metadata:
+      name: dumpy-00002
+      annotations:
+            alpha.image.policy.openshift.io/resolve-names: "*"
+    spec:
+      - containerConcurrency: 1
+        timeoutSeconds: 60
+        containers:
+            imagePullPolicy: Always
+            image: image-registry.openshift-image-registry.svc:5000/myproject/dumpy:latest
+            resources:
+              requests:
+                cpu: 50m
+  traffic:
+  - tag: current
+    revisionName: dumpy-00002
+    percent: 100
+  - tag: latest
+    latestRevision: true
+    percent: 0
+  runLatest:
     configuration:
       build:
         source:
@@ -22,16 +41,3 @@ spec:
             value: "dumpy:latest"
           - name: NAME
             value: dumpy-build
-      revisionTemplate:
-        metadata:
-          annotations:
-            alpha.image.policy.openshift.io/resolve-names: "*"
-        spec:
-          containerConcurrency: 1
-          timeoutSeconds: 60
-          container:
-            imagePullPolicy: Always
-            image: image-registry.openshift-image-registry.svc:5000/myproject/dumpy:latest
-            resources:
-              requests:
-                cpu: 50m
